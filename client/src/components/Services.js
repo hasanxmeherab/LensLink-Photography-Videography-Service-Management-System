@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { serviceAPI } from '../services/api';
 
 const categoryIcons = {
-  Photography: '📸',
-  Videography: '🎥',
-  Wedding: '💍',
-  Event: '🎉',
-  Commercial: '🏢',
-  Portrait: '🖼️',
+  photography: '📸',
+  videography: '🎥',
+  editing: '✂️',
+  package: '📦',
 };
 
 const Services = () => {
@@ -22,9 +20,7 @@ const Services = () => {
   const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchServices();
-  }, []);
+  useEffect(() => { fetchServices(); }, []);
 
   useEffect(() => {
     filterAndSortServices();
@@ -66,8 +62,13 @@ const Services = () => {
     setFilteredServices(filtered);
   };
 
-  const handleBookNow = (serviceId) => {
+  const handleBookNow = (e, serviceId) => {
+    e.stopPropagation();
     navigate('/booking', { state: { serviceId } });
+  };
+
+  const handleCardClick = (serviceId) => {
+    navigate(`/services/${serviceId}`);
   };
 
   if (loading) {
@@ -87,9 +88,7 @@ const Services = () => {
         <div className="text-center glass-card rounded-2xl p-12">
           <div className="text-5xl mb-4">📷</div>
           <p className="text-red-400 mb-6 text-lg">{error}</p>
-          <button onClick={fetchServices} className="btn-primary">
-            Try Again
-          </button>
+          <button onClick={fetchServices} className="btn-primary">Try Again</button>
         </div>
       </div>
     );
@@ -100,37 +99,25 @@ const Services = () => {
       {/* Page Header */}
       <div
         className="relative pt-32 pb-20 px-4 overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, #0e0e1a 0%, #1a0a2e 100%)',
-        }}
+        style={{ background: 'linear-gradient(135deg, #0e0e1a 0%, #1a0a2e 100%)' }}
       >
-        <div
-          className="orb w-80 h-80 top-0 right-0 opacity-20"
-          style={{ background: '#a62dd4' }}
-        />
+        <div className="orb w-80 h-80 top-0 right-0 opacity-20" style={{ background: '#a62dd4' }} />
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="section-label mb-4">Our Offerings</div>
-          <h1
-            className="text-5xl md:text-6xl font-bold text-white mb-4"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
             Our Services
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl">
             Comprehensive photography and videography packages tailored to your vision and budget.
           </p>
         </div>
-        <div
-          className="absolute bottom-0 left-0 right-0 h-16"
-          style={{ background: 'linear-gradient(to bottom, transparent, #080810)' }}
-        />
+        <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: 'linear-gradient(to bottom, transparent, #080810)' }} />
       </div>
 
       <div className="max-w-6xl mx-auto py-12 px-4">
         {/* Search & Filters */}
         <div className="glass-card rounded-2xl p-6 mb-10">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
             <div className="flex-1 relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
               <input
@@ -142,8 +129,6 @@ const Services = () => {
                 className="input-field pl-10"
               />
             </div>
-
-            {/* Category */}
             <div className="md:w-52">
               <select
                 id="services-category-filter"
@@ -158,8 +143,6 @@ const Services = () => {
                 ))}
               </select>
             </div>
-
-            {/* Sort */}
             <div className="md:w-52">
               <select
                 id="services-sort"
@@ -184,23 +167,15 @@ const Services = () => {
               id={`cat-${cat.toLowerCase()}`}
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                selectedCategory === cat
-                  ? 'text-white'
-                  : 'text-gray-400 hover:text-gray-200'
+                selectedCategory === cat ? 'text-white' : 'text-gray-400 hover:text-gray-200'
               }`}
               style={
                 selectedCategory === cat
-                  ? {
-                      background: 'linear-gradient(135deg, #c44df0, #8a20b0)',
-                      boxShadow: '0 4px 15px rgba(196, 77, 240, 0.3)',
-                    }
-                  : {
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                    }
+                  ? { background: 'linear-gradient(135deg, #c44df0, #8a20b0)', boxShadow: '0 4px 15px rgba(196,77,240,0.3)' }
+                  : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }
               }
             >
-              {categoryIcons[cat] && <span className="mr-1">{categoryIcons[cat]}</span>}
+              {categoryIcons[cat?.toLowerCase()] && <span className="mr-1">{categoryIcons[cat.toLowerCase()]}</span>}
               {cat}
             </button>
           ))}
@@ -208,10 +183,7 @@ const Services = () => {
 
         {/* Results Count */}
         <p className="text-gray-500 text-sm mb-8">
-          Showing{' '}
-          <span style={{ color: '#c44df0' }} className="font-semibold">
-            {filteredServices.length}
-          </span>{' '}
+          Showing <span style={{ color: '#c44df0' }} className="font-semibold">{filteredServices.length}</span>{' '}
           of <span className="text-gray-300 font-semibold">{services.length}</span> services
         </p>
 
@@ -224,107 +196,123 @@ const Services = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredServices.map((service, i) => (
-              <div
-                key={service._id}
-                id={`service-card-${service._id}`}
-                className="glass-card rounded-2xl overflow-hidden group transition-all duration-300 hover:-translate-y-2"
-                style={{
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  animationDelay: `${i * 0.05}s`,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(196, 77, 240, 0.3)';
-                  e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(196,77,240,0.12)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
-                  e.currentTarget.style.boxShadow = '';
-                }}
-              >
-                {/* Image */}
-                <div className="relative h-48 overflow-hidden">
-                  {service.image ? (
-                    <img
-                      src={service.image}
-                      alt={service.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center text-5xl"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(166, 45, 212, 0.2), rgba(138, 32, 176, 0.3))',
-                      }}
-                    >
-                      {categoryIcons[service.category] || '📸'}
-                    </div>
-                  )}
-                  {/* Category Badge */}
-                  <div
-                    className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold text-white"
-                    style={{
-                      background: 'rgba(8, 8, 16, 0.8)',
-                      backdropFilter: 'blur(8px)',
-                      border: '1px solid rgba(196, 77, 240, 0.4)',
-                    }}
-                  >
-                    {service.category}
-                  </div>
-                  {/* Image overlay gradient */}
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background: 'linear-gradient(to top, rgba(8,8,16,0.8) 0%, transparent 60%)',
-                    }}
-                  />
-                </div>
-
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
-                    {service.title}
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-relaxed mb-5 line-clamp-2">
-                    {service.description}
-                  </p>
-
-                  {/* Duration */}
-                  <div
-                    className="flex items-center gap-2 text-xs text-gray-500 mb-5 pb-5"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-                  >
-                    <span>⏱️</span>
-                    <span>Duration: {service.duration}</span>
-                  </div>
-
-                  {/* Price & CTA */}
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Starting at</p>
-                      <p
-                        className="text-2xl font-bold"
-                        style={{
-                          background: 'linear-gradient(135deg, #d877f9, #f59e0b)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          backgroundClip: 'text',
-                        }}
+            {filteredServices.map((service, i) => {
+              const firstMedia = (service.media || [])[0];
+              return (
+                <div
+                  key={service._id}
+                  id={`service-card-${service._id}`}
+                  className="glass-card rounded-2xl overflow-hidden group transition-all duration-300 hover:-translate-y-2 cursor-pointer"
+                  style={{ border: '1px solid rgba(255,255,255,0.06)', animationDelay: `${i * 0.05}s` }}
+                  onClick={() => handleCardClick(service._id)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(196,77,240,0.3)';
+                    e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(196,77,240,0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.currentTarget.style.boxShadow = '';
+                  }}
+                >
+                  {/* Media */}
+                  <div className="relative h-48 overflow-hidden">
+                    {firstMedia ? (
+                      firstMedia.type === 'video' ? (
+                        <video
+                          src={firstMedia.url}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          muted
+                        />
+                      ) : (
+                        <img
+                          src={firstMedia.url}
+                          alt={service.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      )
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center text-5xl"
+                        style={{ background: 'linear-gradient(135deg, rgba(166,45,212,0.2), rgba(138,32,176,0.3))' }}
                       >
-                        ৳{service.price.toLocaleString()}
-                      </p>
-                    </div>
-                    <button
-                      id={`book-service-${service._id}`}
-                      onClick={() => handleBookNow(service._id)}
-                      className="btn-primary text-sm px-5 py-2.5"
+                        {categoryIcons[service.category?.toLowerCase()] || '📸'}
+                      </div>
+                    )}
+
+                    {/* Media count badge */}
+                    {(service.media || []).length > 1 && (
+                      <div
+                        className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold"
+                        style={{ background: 'rgba(0,0,0,0.7)', color: '#d877f9', border: '1px solid rgba(196,77,240,0.4)' }}
+                      >
+                        {service.media.length} photos/videos
+                      </div>
+                    )}
+
+                    {/* "View Details" on hover */}
+                    <div
+                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ background: 'rgba(8,8,16,0.6)' }}
                     >
-                      Book Now
-                    </button>
+                      <span
+                        className="px-4 py-2 rounded-full text-sm font-semibold text-white"
+                        style={{ background: 'rgba(196,77,240,0.8)', border: '1px solid rgba(196,77,240,0.6)' }}
+                      >
+                        View Details →
+                      </span>
+                    </div>
+
+                    {/* Category Badge */}
+                    <div
+                      className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold text-white"
+                      style={{ background: 'rgba(8,8,16,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(196,77,240,0.4)' }}
+                    >
+                      {service.category}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                      {service.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm leading-relaxed mb-5 line-clamp-2">
+                      {service.description}
+                    </p>
+                    <div
+                      className="flex items-center gap-2 text-xs text-gray-500 mb-5 pb-5"
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                    >
+                      <span>⏱️</span>
+                      <span>Duration: {service.duration || 'Flexible'}</span>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Starting at</p>
+                        <p
+                          className="text-2xl font-bold"
+                          style={{
+                            background: 'linear-gradient(135deg, #d877f9, #f59e0b)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                          }}
+                        >
+                          ৳{service.price.toLocaleString()}
+                        </p>
+                      </div>
+                      <button
+                        id={`book-service-${service._id}`}
+                        onClick={(e) => handleBookNow(e, service._id)}
+                        className="btn-primary text-sm px-5 py-2.5"
+                      >
+                        Book Now
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

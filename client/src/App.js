@@ -5,6 +5,7 @@ import { AdminAuthProvider } from './context/AdminAuthContext';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import Services from './components/Services';
+import ServiceDetail from './components/ServiceDetail';
 import Portfolio from './components/Portfolio';
 import Booking from './components/Booking';
 import Auth from './components/Auth';
@@ -50,6 +51,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/services" element={<Services />} />
+                    <Route path="/services/:id" element={<ServiceDetail />} />
                     <Route path="/portfolio" element={<Portfolio />} />
                     <Route path="/booking" element={<Booking />} />
                     <Route path="/login" element={<Auth isSignup={false} />} />

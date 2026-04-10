@@ -8,15 +8,17 @@ const {
   deleteService,
 } = require('../controllers/serviceController');
 const { protect, adminOnly } = require('../middleware/auth');
-const { validateService } = require('../middleware/validators');
+const { createUpload } = require('../middleware/upload');
+
+const upload = createUpload('services');
 
 // Public routes
 router.get('/', getAllServices);
 router.get('/:id', getService);
 
-// Protected routes
-router.post('/', protect, adminOnly, validateService, createService);
-router.put('/:id', protect, adminOnly, validateService, updateService);
+// Protected routes — multipart/form-data with up to 10 media files
+router.post('/', protect, adminOnly, upload.array('media', 10), createService);
+router.put('/:id', protect, adminOnly, upload.array('media', 10), updateService);
 router.delete('/:id', protect, adminOnly, deleteService);
 
 module.exports = router;

@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const mediaItemSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  publicId: { type: String, required: true }, // Cloudinary public_id for deletion
+  type: { type: String, enum: ['image', 'video'], default: 'image' },
+});
+
 const serviceSchema = new mongoose.Schema(
   {
     title: {
@@ -24,9 +30,9 @@ const serviceSchema = new mongoose.Schema(
       type: String,
       default: 'Flexible',
     },
-    image: {
-      type: String,
-      default: null,
+    media: {
+      type: [mediaItemSchema],
+      default: [],
     },
     isActive: {
       type: Boolean,

@@ -27,14 +27,11 @@ const validateUserLogin = [
   validate,
 ];
 
-// Service validation rules
+// Service validation rules (files handled by multer, not body validators)
 const validateService = [
   body('title').trim().notEmpty().withMessage('Service title is required'),
   body('description').trim().notEmpty().withMessage('Description is required'),
   body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('category')
-    .isIn(['photography', 'videography', 'editing', 'package'])
-    .withMessage('Invalid category'),
   validate,
 ];
 
@@ -48,13 +45,9 @@ const validateBooking = [
   validate,
 ];
 
-// Portfolio validation rules
+// Portfolio validation rules (media files handled by multer/cloudinary)
 const validatePortfolio = [
   body('title').trim().notEmpty().withMessage('Portfolio title is required'),
-  body('mediaURL').isURL().withMessage('Valid URL is required'),
-  body('mediaType')
-    .isIn(['image', 'video'])
-    .withMessage('Media type must be image or video'),
   validate,
 ];
 

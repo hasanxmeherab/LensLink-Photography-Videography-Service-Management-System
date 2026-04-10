@@ -30,8 +30,10 @@ export const authAPI = {
 export const serviceAPI = {
   getAll: () => api.get('/services'),
   getById: (id) => api.get(`/services/${id}`),
-  create: (data) => api.post('/services', data),
-  update: (id, data) => api.put(`/services/${id}`, data),
+  create: (formData) =>
+    api.post('/services', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/services/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   delete: (id) => api.delete(`/services/${id}`),
 };
 
@@ -50,8 +52,10 @@ export const portfolioAPI = {
   getAll: () => api.get('/portfolio'),
   getFeatured: () => api.get('/portfolio/featured'),
   getById: (id) => api.get(`/portfolio/${id}`),
-  create: (data) => api.post('/portfolio', data),
-  update: (id, data) => api.put(`/portfolio/${id}`, data),
+  create: (formData) =>
+    api.post('/portfolio', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/portfolio/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   delete: (id) => api.delete(`/portfolio/${id}`),
 };
 
