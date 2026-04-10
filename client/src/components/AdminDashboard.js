@@ -190,6 +190,7 @@ const AdminDashboard = () => {
                           <div>
                             <div className="text-white text-sm font-medium">{booking.clientName}</div>
                             <div className="text-xs text-gray-500">{booking.clientEmail}</div>
+                            <div className="text-xs text-gray-400">{booking.clientPhone}</div>
                           </div>
                         </div>
                       </td>
