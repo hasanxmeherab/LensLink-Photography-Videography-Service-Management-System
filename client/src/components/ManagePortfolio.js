@@ -218,6 +218,9 @@ const ManagePortfolio = () => {
                 >
                   <option value="wedding" style={{ background: '#141426' }}>💒 Wedding</option>
                   <option value="event" style={{ background: '#141426' }}>🎉 Event</option>
+                  <option value="birthday" style={{ background: '#141426' }}>🎂 Birthday</option>
+                  <option value="fashion" style={{ background: '#141426' }}>👗 Fashion</option>
+                  <option value="baby" style={{ background: '#141426' }}>👶 Baby</option>
                   <option value="portrait" style={{ background: '#141426' }}>🧑‍🎨 Portrait</option>
                   <option value="commercial" style={{ background: '#141426' }}>🏢 Commercial</option>
                   <option value="other" style={{ background: '#141426' }}>📁 Other</option>

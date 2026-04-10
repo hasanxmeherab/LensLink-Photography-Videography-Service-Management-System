@@ -23,7 +23,7 @@ const portfolioSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['wedding', 'event', 'portrait', 'commercial', 'other'],
+      enum: ['wedding', 'event', 'birthday', 'fashion', 'baby', 'portrait', 'commercial', 'other'],
       default: 'other',
     },
     featured: {

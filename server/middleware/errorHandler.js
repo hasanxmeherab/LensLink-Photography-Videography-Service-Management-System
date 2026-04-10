@@ -36,6 +36,19 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // File size too large error
+  if (err.message && err.message.includes('File size too large')) {
+    const match = err.message.match(/Got (\d+)\. Maximum is (\d+)/);
+    if (match) {
+      const gotMB = (parseInt(match[1]) / 1048576).toFixed(2);
+      const maxMB = (parseInt(match[2]) / 1048576).toFixed(2);
+      return res.status(413).json({
+        success: false,
+        message: `File size too large. Got ${gotMB} MB. Maximum is ${maxMB} MB.`,
+      });
+    }
+  }
+
   // Default error
   res.status(err.statusCode || 500).json({
     success: false,
