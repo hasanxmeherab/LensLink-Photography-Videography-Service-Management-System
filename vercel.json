@@ -1,12 +1,18 @@
 {
   "version": 2,
-  "buildCommand": "cd client && npm run build",
-  "outputDirectory": "client/build",
-  "functions": {
-    "server/server.js": {
-      "runtime": "@vercel/node@latest"
+  "builds": [
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    },
+    {
+      "src": "server/server.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -14,11 +20,20 @@
     },
     {
       "src": "/static/(.*)",
-      "dest": "/client/build/static/$1"
+      "dest": "/static/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/client/build/index.html"
+      "dest": "/build/index.html"
     }
-  ]
+  ],
+  "env": {
+    "MONGODB_URI": "@MONGODB_URI",
+    "JWT_SECRET": "@JWT_SECRET",
+    "JWT_EXPIRE": "@JWT_EXPIRE",
+    "NODE_ENV": "production",
+    "CLOUDINARY_CLOUD_NAME": "@CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY": "@CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET": "@CLOUDINARY_API_SECRET"
+  }
 }
