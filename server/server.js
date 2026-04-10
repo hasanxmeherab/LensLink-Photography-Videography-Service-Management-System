@@ -2,8 +2,8 @@ const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
@@ -16,8 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from React build
-const buildPath = path.join(__dirname, '../client/build');
-app.use(express.static(buildPath));
+app.use(express.static(path.join(__dirname, '../client/build')));
 
 // MongoDB Connection
 connectDB();
@@ -33,9 +32,9 @@ app.use('/api/services', require('./routes/serviceRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/portfolio', require('./routes/portfolioRoutes'));
 
-// SPA Fallback - serve index.html for all non-API routes
+// Serve React app for all non-API routes (SPA fallback)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(buildPath, 'index.html'));
+  res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
 // Error handling middleware
