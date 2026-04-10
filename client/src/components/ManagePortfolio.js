@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { serviceAPI } from '../services/api';
+import { portfolioAPI } from '../services/api';
 
 const EMPTY_FORM = {
   title: '',
   description: '',
-  category: 'photography',
-  price: '',
-  duration: '',
+  category: 'other',
+  featured: false,
 };
 
-const ManageServices = () => {
-  const [services, setServices] = useState([]);
+const ManagePortfolio = () => {
+  const [portfolioItems, setPortfolioItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState(EMPTY_FORM);
@@ -19,27 +18,29 @@ const ManageServices = () => {
   const [submitting, setSubmitting] = useState(false);
 
   // Media state
-  const [newFiles, setNewFiles] = useState([]);          // File objects to upload
-  const [newPreviews, setNewPreviews] = useState([]);    // Preview URLs for new files
-  const [existingMedia, setExistingMedia] = useState([]); // Already-saved media to keep
+  const [newFiles, setNewFiles] = useState([]);
+  const [newPreviews, setNewPreviews] = useState([]);
+  const [existingMedia, setExistingMedia] = useState([]);
   const fileInputRef = useRef(null);
 
-  useEffect(() => { fetchServices(); }, []);
+  useEffect(() => { fetchPortfolio(); }, []);
 
-  const fetchServices = async () => {
+  const fetchPortfolio = async () => {
     try {
-      const res = await serviceAPI.getAll();
-      setServices(res.data.data || []);
+      const res = await portfolioAPI.getAll();
+      setPortfolioItems(res.data.data || []);
       setError('');
     } catch {
-      setError('Failed to fetch services');
+      setError('Failed to fetch portfolio');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) =>
-    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((p) => ({ ...p, [name]: type === 'checkbox' ? checked : value }));
+  };
 
   const handleFileChange = (e) => {
     const picked = Array.from(e.target.files);
@@ -72,52 +73,48 @@ const ManageServices = () => {
       const fd = new FormData();
       fd.append('title', formData.title);
       fd.append('description', formData.description);
-      fd.append('price', formData.price);
       fd.append('category', formData.category);
-      fd.append('duration', formData.duration);
-      // Existing media to keep (for updates)
+      fd.append('featured', formData.featured);
       if (editingId) fd.append('existingMedia', JSON.stringify(existingMedia));
-      // New files
       newFiles.forEach((f) => fd.append('media', f));
 
       if (editingId) {
-        const res = await serviceAPI.update(editingId, fd);
-        setServices((p) => p.map((s) => (s._id === editingId ? res.data.data : s)));
+        const res = await portfolioAPI.update(editingId, fd);
+        setPortfolioItems((p) => p.map((item) => (item._id === editingId ? res.data.data : item)));
       } else {
-        const res = await serviceAPI.create(fd);
-        setServices((p) => [...p, res.data.data]);
+        const res = await portfolioAPI.create(fd);
+        setPortfolioItems((p) => [res.data.data, ...p]);
       }
       resetForm();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save service');
+      setError(err.response?.data?.message || 'Failed to save portfolio item');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleEdit = (service) => {
+  const handleEdit = (item) => {
     setFormData({
-      title: service.title,
-      description: service.description,
-      category: service.category || 'photography',
-      price: service.price,
-      duration: service.duration || '',
+      title: item.title,
+      description: item.description || '',
+      category: item.category || 'other',
+      featured: item.featured || false,
     });
-    setExistingMedia(service.media || []);
+    setExistingMedia(item.media || []);
     setNewFiles([]);
     setNewPreviews([]);
-    setEditingId(service._id);
+    setEditingId(item._id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this service permanently?')) return;
+    if (!window.confirm('Delete this portfolio item permanently?')) return;
     try {
-      await serviceAPI.delete(id);
-      setServices((p) => p.filter((s) => s._id !== id));
+      await portfolioAPI.delete(id);
+      setPortfolioItems((p) => p.filter((item) => item._id !== id));
     } catch {
-      setError('Failed to delete service');
+      setError('Failed to delete portfolio item');
     }
   };
 
@@ -137,7 +134,7 @@ const ManageServices = () => {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="spinner mx-auto mb-4" />
-          <p className="text-gray-400 text-sm">Loading services...</p>
+          <p className="text-gray-400 text-sm">Loading portfolio...</p>
         </div>
       </div>
     );
@@ -148,16 +145,16 @@ const ManageServices = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Manage Services</h1>
-          <p className="text-gray-500 text-sm">{services.length} services total</p>
+          <h1 className="text-2xl font-bold text-white mb-1">Manage Portfolio</h1>
+          <p className="text-gray-500 text-sm">{portfolioItems.length} items total</p>
         </div>
         {!showForm && (
           <button
-            id="add-service-btn"
+            id="add-portfolio-btn"
             onClick={() => setShowForm(true)}
             className="btn-primary text-sm px-5 py-2.5"
           >
-            + Add Service
+            + Add Item
           </button>
         )}
       </div>
@@ -166,11 +163,7 @@ const ManageServices = () => {
       {error && (
         <div
           className="mb-6 px-5 py-4 rounded-xl text-sm"
-          style={{
-            background: 'rgba(239,68,68,0.1)',
-            border: '1px solid rgba(239,68,68,0.3)',
-            color: '#f87171',
-          }}
+          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
         >
           ⚠️ {error}
         </div>
@@ -188,23 +181,23 @@ const ManageServices = () => {
           }}
         >
           <h2 className="text-xl font-bold text-white mb-6">
-            {editingId ? '✏️ Edit Service' : '➕ Add New Service'}
+            {editingId ? '✏️ Edit Portfolio Item' : '➕ Add Portfolio Item'}
           </h2>
 
-          <form onSubmit={handleSubmit} id="service-form" className="space-y-6">
+          <form onSubmit={handleSubmit} id="portfolio-form" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Title */}
               <div>
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Service Title <span className="text-red-400">*</span>
+                  Title <span className="text-red-400">*</span>
                 </label>
                 <input
-                  id="service-title"
+                  id="portfolio-title"
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="e.g., Wedding Photography"
+                  placeholder="e.g., Sunset Wedding Ceremony"
                   className="input-field"
                   required
                 />
@@ -216,69 +209,64 @@ const ManageServices = () => {
                   Category
                 </label>
                 <select
-                  id="service-category"
+                  id="portfolio-category"
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   className="input-field cursor-pointer"
                   style={{ WebkitAppearance: 'none', appearance: 'none' }}
                 >
-                  <option value="photography" style={{ background: '#141426' }}>📸 Photography</option>
-                  <option value="videography" style={{ background: '#141426' }}>🎥 Videography</option>
-                  <option value="editing" style={{ background: '#141426' }}>✂️ Editing</option>
-                  <option value="package" style={{ background: '#141426' }}>📦 Package</option>
+                  <option value="wedding" style={{ background: '#141426' }}>💒 Wedding</option>
+                  <option value="event" style={{ background: '#141426' }}>🎉 Event</option>
+                  <option value="portrait" style={{ background: '#141426' }}>🧑‍🎨 Portrait</option>
+                  <option value="commercial" style={{ background: '#141426' }}>🏢 Commercial</option>
+                  <option value="other" style={{ background: '#141426' }}>📁 Other</option>
                 </select>
-              </div>
-
-              {/* Price */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Price (৳) <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="service-price"
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  placeholder="5000"
-                  min="0"
-                  className="input-field"
-                  required
-                />
-              </div>
-
-              {/* Duration */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Duration
-                </label>
-                <input
-                  id="service-duration"
-                  type="text"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  placeholder="e.g., 4 Hours"
-                  className="input-field"
-                />
               </div>
 
               {/* Description */}
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Description <span className="text-red-400">*</span>
+                  Description
                 </label>
                 <textarea
-                  id="service-description"
+                  id="portfolio-description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Describe the service..."
-                  rows={4}
+                  placeholder="Describe this portfolio item..."
+                  rows={3}
                   className="input-field resize-none"
-                  required
                 />
+              </div>
+
+              {/* Featured toggle */}
+              <div className="flex items-center">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className="relative">
+                    <input
+                      id="portfolio-featured"
+                      type="checkbox"
+                      name="featured"
+                      checked={formData.featured}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div
+                      className="w-12 h-6 rounded-full transition-all duration-200"
+                      style={{
+                        background: formData.featured ? 'linear-gradient(135deg, #c44df0, #8a20b0)' : 'rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                      }}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full bg-white absolute top-1 transition-all duration-200"
+                        style={{ left: formData.featured ? '26px' : '4px' }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-gray-300">⭐ Mark as Featured</span>
+                </label>
               </div>
             </div>
 
@@ -296,7 +284,7 @@ const ManageServices = () => {
                     {existingMedia.map((m, i) => (
                       <div key={i} className="relative group w-24 h-24 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(196,77,240,0.25)' }}>
                         {m.type === 'video' ? (
-                          <div className="w-full h-full flex items-center justify-center text-3xl" style={{ background: 'rgba(196,77,240,0.1)' }}>🎬</div>
+                          <video src={m.url} className="w-full h-full object-cover" muted />
                         ) : (
                           <img src={m.url} alt="" className="w-full h-full object-cover" />
                         )}
@@ -344,10 +332,7 @@ const ManageServices = () => {
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="cursor-pointer rounded-xl flex flex-col items-center justify-center gap-2 py-8 transition-all duration-200"
-                  style={{
-                    border: '2px dashed rgba(196,77,240,0.3)',
-                    background: 'rgba(196,77,240,0.04)',
-                  }}
+                  style={{ border: '2px dashed rgba(196,77,240,0.3)', background: 'rgba(196,77,240,0.04)' }}
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(196,77,240,0.6)'; e.currentTarget.style.background = 'rgba(196,77,240,0.08)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(196,77,240,0.3)'; e.currentTarget.style.background = 'rgba(196,77,240,0.04)'; }}
                 >
@@ -365,14 +350,14 @@ const ManageServices = () => {
                 accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
                 onChange={handleFileChange}
                 className="hidden"
-                id="service-file-input"
+                id="portfolio-file-input"
               />
             </div>
 
             {/* Buttons */}
             <div className="flex gap-4">
               <button
-                id="service-submit"
+                id="portfolio-submit"
                 type="submit"
                 disabled={submitting}
                 className="flex-1 py-3 rounded-xl font-bold text-white transition-all duration-300"
@@ -381,10 +366,10 @@ const ManageServices = () => {
                   boxShadow: submitting ? 'none' : '0 8px 25px rgba(196,77,240,0.3)',
                 }}
               >
-                {submitting ? 'Uploading & Saving...' : editingId ? '💾 Update Service' : '➕ Create Service'}
+                {submitting ? 'Uploading & Saving...' : editingId ? '💾 Update Item' : '➕ Add Item'}
               </button>
               <button
-                id="service-cancel"
+                id="portfolio-cancel"
                 type="button"
                 onClick={resetForm}
                 className="px-8 py-3 rounded-xl font-semibold text-gray-400 hover:text-white transition-all duration-200"
@@ -397,87 +382,83 @@ const ManageServices = () => {
         </div>
       )}
 
-      {/* Services Grid */}
+      {/* Portfolio Grid */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-white">
-          Services <span className="text-sm font-normal text-gray-500">({services.length})</span>
+        <h2 className="text-xl font-bold text-white">
+          Portfolio Items <span className="text-sm font-normal text-gray-500">({portfolioItems.length})</span>
         </h2>
       </div>
 
-      {services.length === 0 ? (
+      {portfolioItems.length === 0 ? (
         <div className="text-center py-24 glass-card rounded-2xl">
-          <div className="text-5xl mb-4">📭</div>
-          <p className="text-xl font-bold text-white mb-2">No services yet</p>
-          <p className="text-gray-500 mb-6">Add your first service to get started</p>
-          <button onClick={() => setShowForm(true)} className="btn-primary">Add First Service</button>
+          <div className="text-5xl mb-4">🖼️</div>
+          <p className="text-xl font-bold text-white mb-2">No portfolio items yet</p>
+          <p className="text-gray-500 mb-6">Add your first portfolio piece to showcase your work</p>
+          <button onClick={() => setShowForm(true)} className="btn-primary">Add First Item</button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service) => {
-            const firstMedia = (service.media || [])[0];
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {portfolioItems.map((item) => {
+            const firstMedia = (item.media || [])[0];
             return (
               <div
-                key={service._id}
-                id={`service-item-${service._id}`}
-                className="glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                key={item._id}
+                id={`portfolio-item-${item._id}`}
+                className="glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 group"
                 style={{ border: '1px solid rgba(255,255,255,0.06)' }}
               >
-                {/* Media strip */}
-                <div className="relative h-44 overflow-hidden bg-gray-900">
+                {/* Thumbnail */}
+                <div className="relative h-40 overflow-hidden bg-gray-900">
                   {firstMedia ? (
                     firstMedia.type === 'video' ? (
                       <video src={firstMedia.url} className="w-full h-full object-cover" muted />
                     ) : (
-                      <img src={firstMedia.url} alt={service.title} className="w-full h-full object-cover" />
+                      <img src={firstMedia.url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     )
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl opacity-30">📷</div>
+                    <div className="w-full h-full flex items-center justify-center text-4xl opacity-30">🖼️</div>
                   )}
-                  {/* Media count badge */}
-                  {(service.media || []).length > 1 && (
-                    <div
-                      className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold"
-                      style={{ background: 'rgba(0,0,0,0.7)', color: '#d877f9', border: '1px solid rgba(196,77,240,0.4)' }}
-                    >
-                      +{service.media.length - 1} more
+                  {item.featured && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.9)', color: '#080810' }}>
+                      ⭐
                     </div>
                   )}
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(8,8,16,0.6) 0%, transparent 60%)' }} />
+                  {/* media count badge */}
+                  {(item.media || []).length > 1 && (
+                    <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'rgba(0,0,0,0.7)', color: '#d877f9', border: '1px solid rgba(196,77,240,0.4)' }}>
+                      {item.media.length} files
+                    </div>
+                  )}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'rgba(8,8,16,0.4)' }} />
                 </div>
 
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-base font-bold text-white leading-snug">{service.title}</h3>
+                {/* Info */}
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-white mb-1 line-clamp-1">{item.title}</h3>
+                  {item.category && (
                     <span
-                      className="text-xs px-2 py-1 rounded-full flex-shrink-0"
+                      className="text-xs px-2 py-0.5 rounded-full inline-block mb-2"
                       style={{ background: 'rgba(196,77,240,0.15)', border: '1px solid rgba(196,77,240,0.3)', color: '#d877f9' }}
                     >
-                      {service.category}
+                      {item.category}
                     </span>
-                  </div>
-                  <p className="text-gray-400 text-sm mb-3 line-clamp-2">{service.description}</p>
-                  <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    <span
-                      className="text-lg font-bold"
-                      style={{ background: 'linear-gradient(135deg, #d877f9, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
-                    >
-                      ৳{Number(service.price).toLocaleString()}
-                    </span>
-                    <span className="text-xs text-gray-500">⏱️ {service.duration || 'Flexible'}</span>
-                  </div>
-                  <div className="flex gap-3">
+                  )}
+                  {item.description && (
+                    <p className="text-xs text-gray-500 line-clamp-2 mb-3">{item.description}</p>
+                  )}
+                  <div className="flex gap-2">
                     <button
-                      id={`edit-service-${service._id}`}
-                      onClick={() => handleEdit(service)}
-                      className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-105"
+                      id={`edit-portfolio-${item._id}`}
+                      onClick={() => handleEdit(item)}
+                      className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
                       style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc' }}
                     >
                       ✏️ Edit
                     </button>
                     <button
-                      id={`delete-service-${service._id}`}
-                      onClick={() => handleDelete(service._id)}
-                      className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-105"
+                      id={`delete-portfolio-${item._id}`}
+                      onClick={() => handleDelete(item._id)}
+                      className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
                       style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
                     >
                       🗑️ Delete
@@ -493,4 +474,4 @@ const ManageServices = () => {
   );
 };
 
-export default ManageServices;
+export default ManagePortfolio;

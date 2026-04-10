@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const mediaItemSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  publicId: { type: String, required: true }, // Cloudinary public_id for deletion
+  type: { type: String, enum: ['image', 'video'], default: 'image' },
+});
+
 const portfolioSchema = new mongoose.Schema(
   {
     title: {
@@ -11,14 +17,9 @@ const portfolioSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-    mediaURL: {
-      type: String,
-      required: [true, 'Please provide a media URL'],
-    },
-    mediaType: {
-      type: String,
-      enum: ['image', 'video'],
-      default: 'image',
+    media: {
+      type: [mediaItemSchema],
+      default: [],
     },
     category: {
       type: String,
