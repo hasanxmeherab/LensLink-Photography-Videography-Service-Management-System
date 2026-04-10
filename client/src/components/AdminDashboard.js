@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { bookingAPI } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 const statusConfig = {
   pending:   { label: 'Pending',   badge: 'badge-pending',   icon: '⏳' },
