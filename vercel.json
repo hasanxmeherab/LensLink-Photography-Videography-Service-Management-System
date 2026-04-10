@@ -4,7 +4,7 @@
   "outputDirectory": "client/build",
   "functions": {
     "server/server.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node@latest"
     }
   },
   "routes": [
