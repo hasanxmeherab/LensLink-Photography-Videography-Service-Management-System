@@ -30,7 +30,7 @@ const createUpload = (folder) => {
 
   return multer({
     storage,
-    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB per file
+    limits: { fileSize: 500 * 1024 * 1024 }, // 500MB per file
     fileFilter: (req, file, cb) => {
       const allowed = [
         'image/jpeg', 'image/png', 'image/webp', 'image/gif',
