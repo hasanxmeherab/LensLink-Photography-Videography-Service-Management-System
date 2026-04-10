@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/database');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -21,17 +22,14 @@ app.get('/api', (req, res) => {
   res.json({ message: 'Welcome to LensLink API' });
 });
 
-// Routes (to be added)
-// app.use('/api/auth', require('./routes/authRoutes'));
-// app.use('/api/services', require('./routes/serviceRoutes'));
-// app.use('/api/bookings', require('./routes/bookingRoutes'));
-// app.use('/api/portfolio', require('./routes/portfolioRoutes'));
+// Routes
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/services', require('./routes/serviceRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/api/portfolio', require('./routes/portfolioRoutes'));
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
