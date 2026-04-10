@@ -1,19 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "cd client && npm run build && cd ../server && npm install",
-  "outputDirectory": "client/build",
+  "buildCommand": "cd client && npm install && npm run build",
+  "builds": [
+    {
+      "src": "server/server.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server/server.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "status": 404,
-      "dest": "/client/build/index.html"
+      "dest": "/server/server.js"
     }
   ]
 }
